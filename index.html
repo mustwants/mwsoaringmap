@@ -12,9 +12,10 @@
                    style-src 'self' 'unsafe-inline';
                    img-src 'self' https: data:;
                    connect-src https://api.github.com https://raw.githubusercontent.com;
-                   frame-src https://*.netlify.app https://*.github.io;
+                   frame-src 'self' https://*.netlify.app https://*.github.io https://mustwants.github.io;
                    font-src 'self' data:;">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <!-- Note: frame-ancestors is set via HTTP headers in netlify.toml -->
 
     <style>
         * {
@@ -169,7 +170,7 @@
 
         .repo-preview {
             width: 100%;
-            height: 250px;
+            height: 400px;
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             display: flex;
             align-items: center;
@@ -178,31 +179,22 @@
             border-bottom: 2px solid #f0f0f0;
             position: relative;
             overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .repo-preview.has-demo {
             cursor: pointer;
-            transition: all 0.3s ease;
         }
 
-        .repo-preview:hover {
-            transform: scale(1.02);
-        }
-
-        .repo-preview a {
-            transition: all 0.3s ease;
-        }
-
-        .repo-preview a:hover {
-            transform: scale(1.05);
+        .repo-preview.has-demo:hover {
+            border-bottom: 3px solid #667eea;
         }
 
         .repo-preview iframe {
             width: 100%;
             height: 100%;
             border: none;
-            pointer-events: none;
-        }
-
-        .repo-card:hover .repo-preview iframe {
-            pointer-events: auto;
+            background: white;
         }
 
         .repo-preview img {
@@ -220,11 +212,108 @@
             font-size: 5em;
             opacity: 0.3;
             transition: all 0.3s ease;
+            text-align: center;
         }
 
-        .repo-preview:hover .preview-placeholder {
-            opacity: 0.5;
-            transform: scale(1.1);
+        .preview-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .control-btn {
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .control-btn:hover {
+            background: rgba(102, 126, 234, 0.9);
+            transform: translateY(-2px);
+        }
+
+        .fullscreen-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 10000;
+            padding: 20px;
+        }
+
+        .fullscreen-overlay.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .fullscreen-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .fullscreen-title {
+            color: white;
+            font-size: 1.5em;
+            font-weight: 600;
+        }
+
+        .fullscreen-close {
+            background: #e53e3e;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+        }
+
+        .fullscreen-close:hover {
+            background: #c53030;
+        }
+
+        .fullscreen-content {
+            flex: 1;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .fullscreen-content iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .loading-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #667eea;
+            font-size: 1.2em;
+            z-index: 50;
         }
 
         .demo-badge {
@@ -515,9 +604,26 @@
                 Explore all projects, identify integration opportunities, and discover ways to merge code for better products.
                 Each card shows what the project looks like, key features, and technology stack.
             </p>
-            <div style="margin-top: 20px; padding: 15px; background: rgba(72, 187, 120, 0.2); border-radius: 10px; font-size: 0.9em;">
-                <strong>💡 Tip:</strong> To add screenshots or update demo URLs for your projects, edit the PROJECT_METADATA object in this file.
-                Screenshots will be displayed instead of placeholders!
+            <div style="margin-top: 20px; padding: 20px; background: linear-gradient(135deg, rgba(72, 187, 120, 0.15), rgba(102, 126, 234, 0.15)); border-radius: 12px; border-left: 4px solid #48bb78;">
+                <div style="font-size: 1.1em; font-weight: 600; color: #2d3748; margin-bottom: 12px;">
+                    🎮 Test All Projects Right Here in the Hub
+                </div>
+                <div style="font-size: 0.9em; color: #4a5568; line-height: 1.8; margin-bottom: 15px;">
+                    This Integration Hub lets you <strong>interact with and test each prototype directly</strong> - no need to visit separate sites!
+                    Each project embeds as a live, interactive demo with fullscreen testing capability.
+                </div>
+                <div style="background: rgba(255, 255, 255, 0.7); padding: 15px; border-radius: 8px; font-size: 0.85em;">
+                    <div style="font-weight: 600; color: #2d3748; margin-bottom: 8px;">🚀 Quick Setup (5 minutes per project):</div>
+                    <ol style="margin: 8px 0 0 20px; line-height: 2; color: #4a5568;">
+                        <li>Go to each repo → <strong>Settings → Pages</strong></li>
+                        <li>Set <strong>Source: Deploy from branch → main</strong></li>
+                        <li>Click <strong>Save</strong> and wait 1-2 minutes</li>
+                        <li>Come back here and <strong>test your projects live!</strong></li>
+                    </ol>
+                    <div style="margin-top: 12px; padding: 10px; background: rgba(102, 126, 234, 0.1); border-radius: 6px; color: #667eea; font-size: 0.95em;">
+                        <strong>✨ Features:</strong> Click Fullscreen button to test in full size | Escape to close | All projects stay in one hub
+                    </div>
+                </div>
             </div>
         </header>
 
@@ -634,6 +740,17 @@
         </footer>
     </div>
 
+    <!-- Fullscreen Overlay for Testing Demos -->
+    <div id="fullscreen-overlay" class="fullscreen-overlay">
+        <div class="fullscreen-header">
+            <div class="fullscreen-title" id="fullscreen-title">Demo</div>
+            <button class="fullscreen-close" onclick="closeFullscreen()">✕ Close (ESC)</button>
+        </div>
+        <div class="fullscreen-content">
+            <iframe id="fullscreen-iframe" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"></iframe>
+        </div>
+    </div>
+
     <script>
         // Configuration
         const GITHUB_USERNAME = 'mustwants';
@@ -666,9 +783,9 @@
                     'User-friendly interface'
                 ],
                 techStack: ['JavaScript', 'HTML5', 'CSS3'],
-                demoUrl: 'https://mustwants.github.io/calculators/', // Add your demo URL
-                screenshotUrl: null, // Add screenshot URL here
-                useIframe: false,
+                demoUrl: 'https://mustwants.github.io/calculators/', // Enable GitHub Pages first
+                screenshotUrl: null, // Optional: './screenshots/calculators.png'
+                useIframe: true, // Embed in hub for testing
                 primaryColor: '#38b2ac'
             },
             'doggypaddle': {
@@ -681,9 +798,9 @@
                     'Engaging user experience'
                 ],
                 techStack: ['JavaScript', 'CSS Animations', 'HTML5 Canvas'],
-                demoUrl: 'https://mustwants.github.io/doggypaddle/', // Add your demo URL
-                screenshotUrl: null, // Add screenshot URL here
-                useIframe: false,
+                demoUrl: 'https://mustwants.github.io/doggypaddle/', // Enable GitHub Pages first
+                screenshotUrl: null, // Optional: './screenshots/doggypaddle.png'
+                useIframe: true, // Embed in hub for testing
                 primaryColor: '#ed8936'
             },
             'mustsandwants': {
@@ -696,9 +813,9 @@
                     'User-friendly interface'
                 ],
                 techStack: ['JavaScript', 'Local Storage', 'CSS Grid'],
-                demoUrl: 'https://mustwants.github.io/mustsandwants/', // Add your demo URL
-                screenshotUrl: null, // Add screenshot URL here
-                useIframe: false,
+                demoUrl: 'https://mustwants.github.io/mustsandwants/', // Enable GitHub Pages first
+                screenshotUrl: null, // Optional: './screenshots/mustsandwants.png'
+                useIframe: true, // Embed in hub for testing
                 primaryColor: '#9f7aea'
             },
             'cardflip': {
@@ -711,9 +828,9 @@
                     'Responsive design'
                 ],
                 techStack: ['JavaScript', 'CSS3 3D Transforms', 'HTML5'],
-                demoUrl: 'https://mustwants.github.io/cardflip/', // Add your demo URL
-                screenshotUrl: null, // Add screenshot URL here
-                useIframe: false,
+                demoUrl: 'https://mustwants.github.io/cardflip/', // Enable GitHub Pages first
+                screenshotUrl: null, // Optional: './screenshots/cardflip.png'
+                useIframe: true, // Embed in hub for testing
                 primaryColor: '#f56565'
             },
             'agentpage': {
@@ -726,9 +843,9 @@
                     'Responsive layout'
                 ],
                 techStack: ['HTML5', 'CSS3', 'JavaScript'],
-                demoUrl: 'https://mustwants.github.io/agentpage/', // Add your demo URL
-                screenshotUrl: null, // Add screenshot URL here
-                useIframe: false,
+                demoUrl: 'https://mustwants.github.io/agentpage/', // Enable GitHub Pages first
+                screenshotUrl: null, // Optional: './screenshots/agentpage.png'
+                useIframe: true, // Embed in hub for testing
                 primaryColor: '#4299e1'
             }
         };
@@ -828,24 +945,43 @@
         function createRepoCard(repoData) {
             if (!repoData) return '';
 
+            const hasDemo = repoData.demoUrl && repoData.useIframe;
+            const cardId = `card-${repoData.name}`;
+
             // Determine what to show in the preview area
             let previewContent;
+            let previewControls = '';
+
             if (repoData.screenshotUrl) {
                 // Show screenshot if available
                 previewContent = `
                     <img src="${repoData.screenshotUrl}" alt="${sanitizeHTML(repoData.name)} preview"
-                         onerror="this.parentElement.innerHTML='<div class=\'preview-placeholder\'>${repoData.icon}</div><div style=\\'position:absolute;bottom:10px;color:#666;font-size:0.9em;\\'>Screenshot not found</div>'">
+                         onerror="this.parentElement.innerHTML='<div class=\'preview-placeholder\'>${repoData.icon}</div><div style=\\'position:absolute;bottom:20px;color:#999;font-size:0.9em;\\'>Screenshot not found</div>'">
                 `;
-            } else if (repoData.demoUrl && repoData.useIframe) {
-                // Embed live demo in iframe
+            } else if (hasDemo) {
+                // Embed live interactive demo
                 previewContent = `
-                    <div class="demo-badge">LIVE DEMO</div>
-                    <iframe src="${repoData.demoUrl}" loading="lazy" sandbox="allow-scripts allow-same-origin"></iframe>
+                    <div class="loading-indicator">Loading demo...</div>
+                    <iframe src="${repoData.demoUrl}"
+                            loading="lazy"
+                            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                            onload="this.previousElementSibling.style.display='none'"
+                            onerror="this.previousElementSibling.textContent='Failed to load demo. Enable GitHub Pages first!'">
+                    </iframe>
+                `;
+                previewControls = `
+                    <div class="preview-controls">
+                        <button class="control-btn" onclick="openFullscreen('${repoData.name}', '${repoData.demoUrl}')" title="Fullscreen">
+                            ⛶ Fullscreen
+                        </button>
+                        <button class="control-btn" onclick="window.open('${repoData.demoUrl}', '_blank')" title="Open in new tab">
+                            ↗ New Tab
+                        </button>
+                    </div>
                 `;
             } else if (repoData.demoUrl) {
-                // Show preview image/thumbnail with link to demo
+                // Link to external demo
                 previewContent = `
-                    <div class="demo-badge">VIEW DEMO</div>
                     <a href="${repoData.demoUrl}" target="_blank" style="text-decoration: none; color: inherit; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                         <div class="preview-placeholder">${repoData.icon}</div>
                         <div style="margin-top: 20px; font-size: 1.1em; font-weight: 600; color: #667eea;">
@@ -854,11 +990,12 @@
                     </a>
                 `;
             } else {
-                // Fallback with just icon and message
+                // Fallback message
                 previewContent = `
                     <div class="preview-placeholder">${repoData.icon}</div>
-                    <div style="position: absolute; bottom: 20px; color: #999; font-size: 0.9em;">
-                        No demo available yet
+                    <div style="position: absolute; bottom: 30px; color: #999; font-size: 0.95em; text-align: center; padding: 0 20px; line-height: 1.6;">
+                        <div style="font-weight: 600; margin-bottom: 8px;">Demo Coming Soon</div>
+                        <div style="font-size: 0.85em;">Enable GitHub Pages to test here</div>
                     </div>
                 `;
             }
@@ -879,9 +1016,10 @@
                 : '';
 
             return `
-                <div class="repo-card">
-                    <div class="repo-preview">
+                <div class="repo-card" id="${cardId}">
+                    <div class="repo-preview ${hasDemo ? 'has-demo' : ''}">
                         ${previewContent}
+                        ${previewControls}
                     </div>
 
                     <div class="repo-content">
@@ -897,13 +1035,15 @@
                         <div class="repo-meta">
                             ${repoData.language ? `<span class="meta-tag">Primary: ${sanitizeHTML(repoData.language)}</span>` : ''}
                             <span class="meta-tag">Updated ${formatDate(repoData.lastUpdated)}</span>
+                            ${hasDemo ? '<span class="meta-tag" style="background: rgba(72, 187, 120, 0.2); color: #38a169;">✓ Interactive Demo</span>' : ''}
                         </div>
 
                         ${techStackHTML}
                         ${featuresHTML}
 
                         <div class="repo-actions">
-                            ${repoData.demoUrl ? `<a href="${repoData.demoUrl}" target="_blank" class="btn btn-primary">🚀 View Live Demo</a>` : ''}
+                            ${hasDemo ? `<button class="btn btn-primary" onclick="openFullscreen('${repoData.name}', '${repoData.demoUrl}')" style="border: none; cursor: pointer;">🎮 Test in Fullscreen</button>` : ''}
+                            ${!hasDemo && repoData.demoUrl ? `<a href="${repoData.demoUrl}" target="_blank" class="btn btn-primary">🚀 View Demo</a>` : ''}
                             <a href="${repoData.url}" target="_blank" class="btn btn-secondary">📂 View Code</a>
                         </div>
 
@@ -917,6 +1057,38 @@
                 </div>
             `;
         }
+
+        // Fullscreen functionality
+        function openFullscreen(projectName, demoUrl) {
+            const overlay = document.getElementById('fullscreen-overlay');
+            const title = document.getElementById('fullscreen-title');
+            const iframe = document.getElementById('fullscreen-iframe');
+
+            title.textContent = projectName;
+            iframe.src = demoUrl;
+            overlay.classList.add('active');
+
+            // Prevent body scroll when fullscreen is open
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeFullscreen() {
+            const overlay = document.getElementById('fullscreen-overlay');
+            const iframe = document.getElementById('fullscreen-iframe');
+
+            overlay.classList.remove('active');
+            iframe.src = '';
+
+            // Restore body scroll
+            document.body.style.overflow = '';
+        }
+
+        // Close fullscreen with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeFullscreen();
+            }
+        });
 
         function createStatsOverview(reposData) {
             const totalStars = reposData.reduce((sum, repo) => sum + (repo?.stars || 0), 0);
