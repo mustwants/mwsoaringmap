@@ -1,0 +1,81 @@
+# Netlify Configuration for mustwants Project Dashboard
+
+ 
+
+[build]
+
+  # No build command needed for static HTML
+
+  publish = "."
+
+ 
+
+[[redirects]]
+
+  from = "/*"
+
+  to = "/index.html"
+
+  status = 200
+
+ 
+
+[build.environment]
+
+  # Node version (if needed for future builds)
+
+  NODE_VERSION = "18"
+
+ 
+
+[[headers]]
+
+  # Security headers for all pages
+
+  for = "/*"
+
+    [headers.values]
+
+    X-Frame-Options = "SAMEORIGIN"
+
+    X-Content-Type-Options = "nosniff"
+
+    X-XSS-Protection = "1; mode=block"
+
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+    Permissions-Policy = "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()"
+
+ 
+
+[[headers]]
+
+  # Cache static assets for 1 year
+
+  for = "/*.html"
+
+    [headers.values]
+
+    Cache-Control = "public, max-age=300"  # 5 minutes cache for HTML to allow updates
+
+ 
+
+[[headers]]
+
+  for = "/*.css"
+
+    [headers.values]
+
+    Cache-Control = "public, max-age=31536000, immutable"
+
+ 
+
+[[headers]]
+
+  for = "/*.js"
+
+    [headers.values]
+
+    Cache-Control = "public, max-age=31536000, immutable"
+
+ 
