@@ -442,13 +442,13 @@
 
         function initializeMap() {
             try {
-                // ⚠️ IMPORTANT: Replace 'YOUR_MAPBOX_TOKEN_HERE' with your actual token
+                // ⚠️ IMPORTANT: Replace 'pk.eyJ1IjoibXVzdHdhbnRzIiwiYSI6ImNsaTh2cjI3NDB3bHEzZ3Fob3c4aDR4MHcifQ.qDhlx0b6fclWZnm_u1pTpQ' with your actual token
                 // Get your FREE token at: https://account.mapbox.com/
                 // SECURITY: Make sure to set URL restrictions in your Mapbox dashboard!
-                mapboxgl.accessToken = 'YOUR_MAPBOX_TOKEN_HERE';
+                mapboxgl.accessToken = 'pk.eyJ1IjoibXVzdHdhbnRzIiwiYSI6ImNsaTh2cjI3NDB3bHEzZ3Fob3c4aDR4MHcifQ.qDhlx0b6fclWZnm_u1pTpQ';
 
                 // Validate token format
-                if (!mapboxgl.accessToken || mapboxgl.accessToken === 'YOUR_MAPBOX_TOKEN_HERE' || !mapboxgl.accessToken.startsWith('pk.')) {
+                if (!mapboxgl.accessToken || mapboxgl.accessToken === 'pk.eyJ1IjoibXVzdHdhbnRzIiwiYSI6ImNsaTh2cjI3NDB3bHEzZ3Fob3c4aDR4MHcifQ.qDhlx0b6fclWZnm_u1pTpQ' || !mapboxgl.accessToken.startsWith('pk.')) {
                     showError('⚠️ Invalid Mapbox token. Please add your own token from https://account.mapbox.com/ and set URL restrictions for security.');
                     return;
                 }
