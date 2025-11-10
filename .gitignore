@@ -1,0 +1,48 @@
+# Environment variables and sensitive data
+.env
+.env.local
+.env.production
+.env.development
+config.local.js
+*-token.txt
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS files
+Thumbs.db
+Desktop.ini
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependency directories (if adding build process later)
+node_modules/
+bower_components/
+
+# Build outputs (if adding build process later)
+dist/
+build/
+.cache/
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
