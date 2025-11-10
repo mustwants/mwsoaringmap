@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Soaring Real Estate Map</title>
+    
+    <!-- Mapbox GL JS -->
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css' rel='stylesheet' />
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            cursor: none;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+
+        /* Loading screen */
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            z-index: 10000;
+            font-size: 24px;
+        }
+
+        #loading.hidden {
+            display: none;
+        }
+
+        .spinner {
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-top: 5px solid white;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Error message */
+        #error {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #c53030;
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            z-index: 10001;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        #error.show {
+            display: block;
+        }
+
+        #error h2 {
+            margin-bottom: 15px;
+        }
+
+        #error button {
+            margin-top: 20px;
+            padding: 10px 30px;
+            background: white;
+            color: #c53030;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #error button:hover {
+            background: #f0f0f0;
+        }
+
+        /* Custom floating cursor */
+        #custom-cursor {
+            position: fixed;
+            width: 40px;
+            height: 40px;
+            border: 3px solid #fff;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: all 0.15s ease;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5),
+                        0 0 40px rgba(66, 153, 225, 0.3);
+            background: radial-gradient(circle, rgba(66, 153, 225, 0.3) 0%, transparent 70%);
+        }
+
+        #custom-cursor::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 8px;
+            height: 8px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+
+        #custom-cursor.hovering {
+            width: 60px;
+            height: 60px;
+            border-color: #4299e1;
+        }
+
+        /* Info card popup */
+        .info-card {
+            position: fixed;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            color: white;
+            min-width: 350px;
+            max-width: 400px;
+            pointer-events: none;
+            z-index: 1000;
+            transform: translate(-50%, -120%) scale(0.8);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .info-card.active {
+            opacity: 1;
+            transform: translate(-50%, -120%) scale(1);
+        }
+
+        .info-card::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 15px solid #764ba2;
+        }
+
+        .info-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .info-card .price {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #ffd700;
+        }
+
+        .info-card .details {
+            margin: 15px 0;
+            line-height: 1.6;
+        }
+
+        .info-card .detail-item {
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .info-card .detail-item::before {
+            content: '✦';
+            margin-right: 8px;
+            color: #ffd700;
+        }
+
+        .info-card .agent {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .info-card .agent-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .info-card .social-links {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .info-card .social-link {
+            width: 30px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        /* Instructions overlay */
+        .instructions {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 999;
+            max-width: 300px;
+            backdrop-filter: blur(10px);
+        }
+
+        .instructions h3 {
+            margin: 0 0 10px 0;
+            font-size: 18px;
+        }
+
+        .instructions p {
+            margin: 5px 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* Zoom indicator */
+        .zoom-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            z-index: 999;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading">
+        <div class="spinner"></div>
+        <div>Loading your map...</div>
+        <div style="font-size: 14px; margin-top: 10px; opacity: 0.8;">Please wait</div>
+    </div>
+
+    <!-- Error Screen -->
+    <div id="error">
+        <h2>⚠️ Map Loading Error</h2>
+        <p id="error-message">Something went wrong. Please check your internet connection and try again.</p>
+        <button onclick="location.reload()">Reload Page</button>
+    </div>
+
+    <div id="map"></div>
+    <div id="custom-cursor"></div>
+    <div id="info-card" class="info-card"></div>
+
+    <div class="instructions">
+        <h3>🗺️ Controls</h3>
+        <p><strong>Mouse Wheel:</strong> Zoom in/out</p>
+        <p><strong>Hover on pins:</strong> View property info</p>
+        <p><strong>Move mouse:</strong> Fly around</p>
+        <p>Watch the camera angle change as you zoom!</p>
+    </div>
+
+    <div class="zoom-indicator">
+        <div>Zoom Level: <span id="zoom-level">4.0</span></div>
+        <div>Altitude: <span id="altitude">High</span></div>
+    </div>
+
+    <script>
+        // Wait for everything to load
+        window.addEventListener('load', function() {
+            // Check if Mapbox loaded
+            if (typeof mapboxgl === 'undefined') {
+                showError('Mapbox library failed to load. Please check your internet connection.');
+                return;
+            }
+
+            // Initialize the map
+            initializeMap();
+        });
+
+        function showError(message) {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('error-message').textContent = message;
+            document.getElementById('error').classList.add('show');
+        }
+
+        function initializeMap() {
+            try {
+                // Replace with your Mapbox access token
+                // Get free token at: https://account.mapbox.com/
+                mapboxgl.accessToken = 'pk.eyJ1IjoiZXhhbXBsZXMiLCJhIjoiY2p0MG01MXRqMW45cjQzb2R6b2ptc3J4MSJ9.zA2W0IkI0c6KaAhJfk9bWg';
+
+                // Initialize map centered on United States
+                const map = new mapboxgl.Map({
+                    container: 'map',
+                    style: 'mapbox://styles/mapbox/satellite-streets-v12',
+                    center: [-98.5795, 39.8283], // Center of USA
+                    zoom: 4,
+                    pitch: 0, // Start flat
+                    bearing: 0,
+                    antialias: true
+                });
+
+                // Sample real estate properties across the US
+                const properties = [
+                    {
+                        coordinates: [-118.2437, 34.0522],
+                        name: "Luxury Villa Los Angeles",
+                        price: "$2,450,000",
+                        beds: 5,
+                        baths: 4,
+                        sqft: "4,200",
+                        agent: "Sarah Johnson",
+                        phone: "(310) 555-0123",
+                        social: { fb: "📘", ig: "📷", tw: "🐦" }
+                    },
+                    {
+                        coordinates: [-122.4194, 37.7749],
+                        name: "Modern Condo San Francisco",
+                        price: "$1,850,000",
+                        beds: 3,
+                        baths: 2,
+                        sqft: "2,100",
+                        agent: "Michael Chen",
+                        phone: "(415) 555-0456",
+                        social: { fb: "📘", ig: "📷", tw: "🐦" }
+                    },
+                    {
+                        coordinates: [-87.6298, 41.8781],
+                        name: "Chicago Penthouse",
+                        price: "$3,200,000",
+                        beds: 4,
+                        baths: 3,
+                        sqft: "3,800",
+                        agent: "Emily Rodriguez",
+                        phone: "(312) 555-0789",
+                        social: { fb: "📘", ig: "📷", tw: "🐦" }
+                    },
+                    {
+                        coordinates: [-74.0060, 40.7128],
+                        name: "NYC Loft Manhattan",
+                        price: "$4,500,000",
+                        beds: 3,
+                        baths: 3,
+                        sqft: "2,800",
+                        agent: "David Kim",
+                        phone: "(212) 555-0321",
+                        social: { fb: "📘", ig: "📷", tw: "🐦" }
+                    },
+                    {
+                        coordinates: [-95.3698, 29.7604],
+                        name: "Houston Estate",
+                        price: "$1,250,000",
+                        beds: 6,
+                        baths: 5,
+                        sqft: "5,500",
+                        agent: "Lisa Martinez",
+                        phone: "(713) 555-0654",
+                        social: { fb: "📘", ig: "📷", tw: "🐦" }
+                    },
+                    {
+                        coordinates: [-112.0740, 33.4484],
+                        name: "Phoenix Desert Home",
+                        price: "$875,000",
+                        beds: 4,
+                        baths: 3,
+                        sqft: "3,200",
+                        agent: "Robert Taylor",
+                        phone: "(602) 555-0987",
+                        social: { fb: "📘", ig: "📷", tw: "🐦" }
+                    },
+                    {
+                        coordinates: [-80.1918, 25.7617],
+                        name: "Miami Beach House",
+                        price: "$3,800,000",
+                        beds: 5,
+                        baths: 4,
+                        sqft: "4,500",
+                        agent: "Carlos Diaz",
+                        phone: "(305) 555-0147",
+                        social: { fb: "📘", ig: "📷", tw: "🐦" }
+                    },
+                    {
+                        coordinates: [-122.3321, 47.6062],
+                        name: "Seattle Waterfront",
+                        price: "$2,100,000",
+                        beds: 4,
+                        baths: 3,
+                        sqft: "3,400",
+                        agent: "Jennifer Wong",
+                        phone: "(206) 555-0258",
+                        social: { fb: "📘", ig: "📷", tw: "🐦" }
+                    }
+                ];
+
+                let markers = [];
+                let activeMarker = null;
+
+                // Custom cursor tracking
+                const cursor = document.getElementById('custom-cursor');
+                const infoCard = document.getElementById('info-card');
+                let mouseX = 0, mouseY = 0;
+
+                document.addEventListener('mousemove', (e) => {
+                    mouseX = e.clientX;
+                    mouseY = e.clientY;
+                    cursor.style.left = mouseX + 'px';
+                    cursor.style.top = mouseY + 'px';
+
+                    // Smooth camera follow (subtle pan)
+                    const centerX = window.innerWidth / 2;
+                    const centerY = window.innerHeight / 2;
+                    const offsetX = (mouseX - centerX) / centerX;
+                    const offsetY = (mouseY - centerY) / centerY;
+                    
+                    // Very subtle rotation based on mouse position
+                    const bearing = offsetX * 5; // Max 5 degrees rotation
+                    map.easeTo({
+                        bearing: bearing,
+                        duration: 1000
+                    });
+                });
+
+                // Zoom with mouse wheel and adjust pitch
+                map.on('wheel', (e) => {
+                    const zoom = map.getZoom();
+                    updateZoomDisplay(zoom);
+                });
+
+                map.on('zoom', () => {
+                    const zoom = map.getZoom();
+                    
+                    // Adjust pitch based on zoom level
+                    // More zoomed in = more tilted view (bird's eye with horizon)
+                    let targetPitch = 0;
+                    if (zoom > 5) {
+                        targetPitch = Math.min((zoom - 5) * 8, 60); // Max 60 degrees
+                    }
+                    
+                    map.easeTo({
+                        pitch: targetPitch,
+                        duration: 1000
+                    });
+
+                    updateZoomDisplay(zoom);
+                });
+
+                function updateZoomDisplay(zoom) {
+                    document.getElementById('zoom-level').textContent = zoom.toFixed(1);
+                    
+                    let altitude = 'Very High';
+                    if (zoom > 10) altitude = 'Low';
+                    else if (zoom > 7) altitude = 'Medium';
+                    else if (zoom > 5) altitude = 'High';
+                    
+                    document.getElementById('altitude').textContent = altitude;
+                }
+
+                // Add markers when map loads
+                map.on('load', () => {
+                    // Hide loading screen
+                    document.getElementById('loading').classList.add('hidden');
+
+                    // Add 3D terrain
+                    map.addSource('mapbox-dem', {
+                        'type': 'raster-dem',
+                        'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
+                        'tileSize': 512,
+                        'maxzoom': 14
+                    });
+                    map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
+
+                    // Add sky layer for more atmosphere
+                    map.addLayer({
+                        'id': 'sky',
+                        'type': 'sky',
+                        'paint': {
+                            'sky-type': 'atmosphere',
+                            'sky-atmosphere-sun': [0.0, 90.0],
+                            'sky-atmosphere-sun-intensity': 15
+                        }
+                    });
+
+                    // Add property markers
+                    properties.forEach((property, index) => {
+                        // Create custom marker element
+                        const el = document.createElement('div');
+                        el.className = 'marker-pin';
+                        el.style.cssText = `
+                            width: 40px;
+                            height: 40px;
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            border-radius: 50% 50% 50% 0;
+                            transform: rotate(-45deg);
+                            border: 3px solid white;
+                            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                            animation: bounce 2s infinite;
+                            animation-delay: ${index * 0.2}s;
+                        `;
+
+                        // Add inner dot
+                        const innerDot = document.createElement('div');
+                        innerDot.style.cssText = `
+                            width: 12px;
+                            height: 12px;
+                            background: white;
+                            border-radius: 50%;
+                            position: absolute;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                        `;
+                        el.appendChild(innerDot);
+
+                        // Marker hover events
+                        el.addEventListener('mouseenter', () => {
+                            el.style.transform = 'rotate(-45deg) scale(1.3)';
+                            el.style.zIndex = '1000';
+                            cursor.classList.add('hovering');
+                            showInfoCard(property, mouseX, mouseY);
+                            activeMarker = property;
+                        });
+
+                        el.addEventListener('mouseleave', () => {
+                            el.style.transform = 'rotate(-45deg) scale(1)';
+                            cursor.classList.remove('hovering');
+                            hideInfoCard();
+                            activeMarker = null;
+                        });
+
+                        // Create marker
+                        const marker = new mapboxgl.Marker({ element: el })
+                            .setLngLat(property.coordinates)
+                            .addTo(map);
+
+                        markers.push(marker);
+                    });
+
+                    // Add bounce animation
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        @keyframes bounce {
+                            0%, 100% { transform: rotate(-45deg) translateY(0); }
+                            50% { transform: rotate(-45deg) translateY(-10px); }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                });
+
+                // Handle map errors
+                map.on('error', (e) => {
+                    console.error('Map error:', e);
+                    if (e.error && e.error.message.includes('token')) {
+                        showError('Invalid Mapbox token. Please add your own token from https://account.mapbox.com/');
+                    }
+                });
+
+                function showInfoCard(property, x, y) {
+                    const card = document.getElementById('info-card');
+                    
+                    card.innerHTML = `
+                        <h3>🏡 ${property.name}</h3>
+                        <div class="price">${property.price}</div>
+                        <div class="details">
+                            <div class="detail-item">${property.beds} Bedrooms</div>
+                            <div class="detail-item">${property.baths} Bathrooms</div>
+                            <div class="detail-item">${property.sqft} sq ft</div>
+                        </div>
+                        <div class="agent">
+                            <div class="agent-name">👤 ${property.agent}</div>
+                            <div>📞 ${property.phone}</div>
+                            <div class="social-links">
+                                <div class="social-link">${property.social.fb}</div>
+                                <div class="social-link">${property.social.ig}</div>
+                                <div class="social-link">${property.social.tw}</div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    card.style.left = x + 'px';
+                    card.style.top = y + 'px';
+                    card.classList.add('active');
+                }
+
+                function hideInfoCard() {
+                    const card = document.getElementById('info-card');
+                    card.classList.remove('active');
+                }
+
+                // Update info card position as mouse moves while hovering
+                document.addEventListener('mousemove', (e) => {
+                    if (activeMarker && infoCard.classList.contains('active')) {
+                        infoCard.style.left = e.clientX + 'px';
+                        infoCard.style.top = e.clientY + 'px';
+                    }
+                });
+
+                // Initial zoom display
+                updateZoomDisplay(map.getZoom());
+
+            } catch (error) {
+                console.error('Error initializing map:', error);
+                showError('Failed to initialize map: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
