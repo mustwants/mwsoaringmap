@@ -515,9 +515,14 @@
                 Explore all projects, identify integration opportunities, and discover ways to merge code for better products.
                 Each card shows what the project looks like, key features, and technology stack.
             </p>
-            <div style="margin-top: 20px; padding: 15px; background: rgba(72, 187, 120, 0.2); border-radius: 10px; font-size: 0.9em;">
-                <strong>💡 Tip:</strong> To add screenshots or update demo URLs for your projects, edit the PROJECT_METADATA object in this file.
-                Screenshots will be displayed instead of placeholders!
+            <div style="margin-top: 20px; padding: 15px; background: rgba(255, 193, 7, 0.2); border-radius: 10px; font-size: 0.9em;">
+                <strong>⚠️ Setup Needed:</strong> To see live demos of your other projects:
+                <ul style="margin: 10px 0 0 20px; line-height: 1.8;">
+                    <li>Enable GitHub Pages for each repo (Settings → Pages → Deploy from main branch)</li>
+                    <li>Or add screenshots to <code>./screenshots/</code> folder</li>
+                    <li>Then update the <code>demoUrl</code> or <code>screenshotUrl</code> in PROJECT_METADATA</li>
+                </ul>
+                See <strong>HOW_TO_ADD_SCREENSHOTS.md</strong> for detailed instructions.
             </div>
         </header>
 
@@ -666,8 +671,8 @@
                     'User-friendly interface'
                 ],
                 techStack: ['JavaScript', 'HTML5', 'CSS3'],
-                demoUrl: 'https://mustwants.github.io/calculators/', // Add your demo URL
-                screenshotUrl: null, // Add screenshot URL here
+                demoUrl: null, // Set to your live URL: 'https://mustwants.github.io/calculators/'
+                screenshotUrl: null, // Or add screenshot: './screenshots/calculators.png'
                 useIframe: false,
                 primaryColor: '#38b2ac'
             },
@@ -681,8 +686,8 @@
                     'Engaging user experience'
                 ],
                 techStack: ['JavaScript', 'CSS Animations', 'HTML5 Canvas'],
-                demoUrl: 'https://mustwants.github.io/doggypaddle/', // Add your demo URL
-                screenshotUrl: null, // Add screenshot URL here
+                demoUrl: null, // Set to your live URL: 'https://mustwants.github.io/doggypaddle/'
+                screenshotUrl: null, // Or add screenshot: './screenshots/doggypaddle.png'
                 useIframe: false,
                 primaryColor: '#ed8936'
             },
@@ -696,8 +701,8 @@
                     'User-friendly interface'
                 ],
                 techStack: ['JavaScript', 'Local Storage', 'CSS Grid'],
-                demoUrl: 'https://mustwants.github.io/mustsandwants/', // Add your demo URL
-                screenshotUrl: null, // Add screenshot URL here
+                demoUrl: null, // Set to your live URL: 'https://mustwants.github.io/mustsandwants/'
+                screenshotUrl: null, // Or add screenshot: './screenshots/mustsandwants.png'
                 useIframe: false,
                 primaryColor: '#9f7aea'
             },
@@ -711,8 +716,8 @@
                     'Responsive design'
                 ],
                 techStack: ['JavaScript', 'CSS3 3D Transforms', 'HTML5'],
-                demoUrl: 'https://mustwants.github.io/cardflip/', // Add your demo URL
-                screenshotUrl: null, // Add screenshot URL here
+                demoUrl: null, // Set to your live URL: 'https://mustwants.github.io/cardflip/'
+                screenshotUrl: null, // Or add screenshot: './screenshots/cardflip.png'
                 useIframe: false,
                 primaryColor: '#f56565'
             },
@@ -726,8 +731,8 @@
                     'Responsive layout'
                 ],
                 techStack: ['HTML5', 'CSS3', 'JavaScript'],
-                demoUrl: 'https://mustwants.github.io/agentpage/', // Add your demo URL
-                screenshotUrl: null, // Add screenshot URL here
+                demoUrl: null, // Set to your live URL: 'https://mustwants.github.io/agentpage/'
+                screenshotUrl: null, // Or add screenshot: './screenshots/agentpage.png'
                 useIframe: false,
                 primaryColor: '#4299e1'
             }
