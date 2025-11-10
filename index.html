@@ -1,1837 +1,995 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Integration Hub - mustwants Projects</title>
 
- 
-
     <!-- Security Headers -->
-
     <meta http-equiv="Content-Security-Policy"
-
           content="default-src 'self';
-
                    script-src 'self' 'unsafe-inline';
-
                    style-src 'self' 'unsafe-inline';
-
                    img-src 'self' https: data:;
-
                    connect-src https://api.github.com https://raw.githubusercontent.com;
-
                    frame-src https://*.netlify.app https://*.github.io;
-
                    font-src 'self' data:;">
-
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
 
- 
-
     <style>
-
         * {
-
             margin: 0;
-
             padding: 0;
-
             box-sizing: border-box;
-
         }
-
- 
 
         body {
-
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
-
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-
             min-height: 100vh;
-
             padding: 20px;
-
             color: #333;
-
         }
-
- 
 
         .container {
-
             max-width: 1600px;
-
             margin: 0 auto;
-
         }
-
- 
 
         header {
-
             text-align: center;
-
             color: white;
-
             margin-bottom: 40px;
-
             padding: 40px;
-
             background: rgba(0, 0, 0, 0.2);
-
             border-radius: 20px;
-
             backdrop-filter: blur(10px);
-
         }
-
- 
 
         h1 {
-
             font-size: 3.5em;
-
             margin-bottom: 15px;
-
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-
         }
-
- 
 
         .subtitle {
-
             font-size: 1.3em;
-
             opacity: 0.9;
-
             margin-bottom: 10px;
-
         }
-
- 
 
         .purpose {
-
             font-size: 1em;
-
             opacity: 0.8;
-
             max-width: 800px;
-
             margin: 20px auto 0;
-
             line-height: 1.6;
-
         }
-
- 
 
         .nav-tabs {
-
             display: flex;
-
             gap: 10px;
-
             justify-content: center;
-
             margin-bottom: 30px;
-
             flex-wrap: wrap;
-
         }
-
- 
 
         .tab-btn {
-
             background: rgba(255, 255, 255, 0.2);
-
             color: white;
-
             border: 2px solid rgba(255, 255, 255, 0.3);
-
             padding: 12px 30px;
-
             border-radius: 25px;
-
             cursor: pointer;
-
             font-size: 1em;
-
             font-weight: 600;
-
             transition: all 0.3s ease;
-
             backdrop-filter: blur(10px);
-
         }
-
- 
 
         .tab-btn:hover {
-
             background: rgba(255, 255, 255, 0.3);
-
             transform: translateY(-2px);
-
         }
-
- 
 
         .tab-btn.active {
-
             background: white;
-
             color: #667eea;
-
             border-color: white;
-
         }
-
- 
 
         .tab-content {
-
             display: none;
-
         }
-
- 
 
         .tab-content.active {
-
             display: block;
-
         }
-
- 
 
         .stats-overview {
-
             display: grid;
-
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-
             gap: 20px;
-
             margin-bottom: 40px;
-
         }
-
- 
 
         .stat-card {
-
             background: rgba(255, 255, 255, 0.95);
-
             padding: 25px;
-
             border-radius: 15px;
-
             text-align: center;
-
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-
             transition: transform 0.3s ease;
-
         }
-
- 
 
         .stat-card:hover {
-
             transform: translateY(-5px);
-
         }
-
- 
 
         .stat-number {
-
             font-size: 2.5em;
-
             font-weight: bold;
-
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-
             -webkit-background-clip: text;
-
             -webkit-text-fill-color: transparent;
-
             background-clip: text;
-
         }
-
- 
 
         .stat-label {
-
             color: #666;
-
             margin-top: 5px;
-
             font-size: 0.9em;
-
             text-transform: uppercase;
-
             letter-spacing: 1px;
-
         }
-
- 
 
         .repos-grid {
-
             display: grid;
-
             grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-
             gap: 30px;
-
             margin-bottom: 40px;
-
         }
-
- 
 
         .repo-card {
-
             background: rgba(255, 255, 255, 0.95);
-
             border-radius: 20px;
-
             overflow: hidden;
-
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-
             transition: all 0.3s ease;
-
             border: 2px solid transparent;
-
             display: flex;
-
             flex-direction: column;
-
         }
-
- 
 
         .repo-card:hover {
-
             transform: translateY(-5px);
-
             border-color: #667eea;
-
             box-shadow: 0 12px 48px rgba(102, 126, 234, 0.3);
-
         }
-
- 
 
         .repo-preview {
-
             width: 100%;
-
             height: 250px;
-
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-
             display: flex;
-
             align-items: center;
-
             justify-content: center;
-
             font-size: 4em;
-
             border-bottom: 2px solid #f0f0f0;
-
             position: relative;
-
             overflow: hidden;
-
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
- 
+        .repo-preview:hover {
+            transform: scale(1.02);
+        }
+
+        .repo-preview a {
+            transition: all 0.3s ease;
+        }
+
+        .repo-preview a:hover {
+            transform: scale(1.05);
+        }
 
         .repo-preview iframe {
-
             width: 100%;
-
             height: 100%;
-
             border: none;
-
+            pointer-events: none;
         }
 
- 
+        .repo-card:hover .repo-preview iframe {
+            pointer-events: auto;
+        }
 
         .repo-preview img {
-
             width: 100%;
-
             height: 100%;
-
             object-fit: cover;
-
+            transition: transform 0.3s ease;
         }
 
- 
+        .repo-preview img:hover {
+            transform: scale(1.05);
+        }
 
         .preview-placeholder {
-
             font-size: 5em;
-
             opacity: 0.3;
-
+            transition: all 0.3s ease;
         }
 
- 
+        .repo-preview:hover .preview-placeholder {
+            opacity: 0.5;
+            transform: scale(1.1);
+        }
 
         .demo-badge {
-
             position: absolute;
-
             top: 10px;
-
             right: 10px;
-
             background: #48bb78;
-
             color: white;
-
             padding: 8px 16px;
-
             border-radius: 20px;
-
             font-size: 0.8em;
-
             font-weight: 600;
-
             text-transform: uppercase;
-
             z-index: 10;
-
         }
-
- 
 
         .repo-content {
-
             padding: 30px;
-
             flex: 1;
-
             display: flex;
-
             flex-direction: column;
-
         }
-
- 
 
         .repo-header {
-
             display: flex;
-
             align-items: center;
-
             justify-content: space-between;
-
             margin-bottom: 15px;
-
         }
-
- 
 
         .repo-name {
-
             font-size: 1.6em;
-
             font-weight: bold;
-
             color: #667eea;
-
             text-decoration: none;
-
             display: flex;
-
             align-items: center;
-
             gap: 10px;
-
         }
-
- 
 
         .repo-name:hover {
-
             color: #764ba2;
-
         }
-
- 
 
         .repo-description {
-
             color: #666;
-
             margin-bottom: 20px;
-
             line-height: 1.6;
-
             font-size: 1.05em;
-
         }
-
- 
 
         .repo-meta {
-
             display: flex;
-
             flex-wrap: wrap;
-
             gap: 10px;
-
             margin-bottom: 20px;
-
         }
-
- 
 
         .meta-tag {
-
             background: rgba(102, 126, 234, 0.1);
-
             color: #667eea;
-
             padding: 6px 14px;
-
             border-radius: 15px;
-
             font-size: 0.85em;
-
             font-weight: 600;
-
         }
-
- 
 
         .repo-features {
-
             background: #f8f9fa;
-
             padding: 20px;
-
             border-radius: 10px;
-
             margin-bottom: 20px;
-
         }
-
- 
 
         .features-title {
-
             font-weight: 600;
-
             color: #333;
-
             margin-bottom: 10px;
-
             font-size: 0.95em;
-
             text-transform: uppercase;
-
             letter-spacing: 0.5px;
-
         }
-
- 
 
         .features-list {
-
             list-style: none;
-
             padding: 0;
-
         }
-
- 
 
         .features-list li {
-
             padding: 5px 0;
-
             color: #666;
-
             font-size: 0.9em;
-
             display: flex;
-
             align-items: center;
-
             gap: 8px;
-
         }
-
- 
 
         .features-list li::before {
-
             content: '✓';
-
             color: #48bb78;
-
             font-weight: bold;
-
             font-size: 1.2em;
-
         }
-
- 
 
         .tech-stack {
-
             display: flex;
-
             flex-wrap: wrap;
-
             gap: 8px;
-
             margin-bottom: 20px;
-
         }
-
- 
 
         .tech-badge {
-
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-
             color: white;
-
             padding: 5px 12px;
-
             border-radius: 12px;
-
             font-size: 0.8em;
-
             font-weight: 600;
-
         }
-
- 
 
         .repo-stats {
-
             display: flex;
-
             gap: 20px;
-
             margin-top: auto;
-
             padding-top: 20px;
-
             border-top: 2px solid #f0f0f0;
-
             flex-wrap: wrap;
-
         }
-
- 
 
         .repo-stat {
-
             display: flex;
-
             align-items: center;
-
             gap: 5px;
-
             color: #666;
-
             font-size: 0.9em;
-
         }
-
- 
 
         .repo-actions {
-
             display: flex;
-
             gap: 10px;
-
             margin-top: 15px;
-
         }
-
- 
 
         .btn {
-
             padding: 10px 20px;
-
             border-radius: 8px;
-
             text-decoration: none;
-
             font-weight: 600;
-
             font-size: 0.9em;
-
             transition: all 0.3s ease;
-
             display: inline-flex;
-
             align-items: center;
-
             gap: 8px;
-
         }
-
- 
 
         .btn-primary {
-
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-
             color: white;
-
         }
-
- 
 
         .btn-primary:hover {
-
             transform: translateY(-2px);
-
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-
         }
-
- 
 
         .btn-secondary {
-
             background: white;
-
             color: #667eea;
-
             border: 2px solid #667eea;
-
         }
-
- 
 
         .btn-secondary:hover {
-
             background: #667eea;
-
             color: white;
-
         }
-
- 
 
         .integration-section {
-
             background: rgba(255, 255, 255, 0.95);
-
             border-radius: 20px;
-
             padding: 40px;
-
             margin-bottom: 40px;
-
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-
         }
-
- 
 
         .integration-title {
-
             font-size: 2em;
-
             color: #667eea;
-
             margin-bottom: 20px;
-
             text-align: center;
-
         }
-
- 
 
         .integration-grid {
-
             display: grid;
-
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-
             gap: 25px;
-
         }
-
- 
 
         .integration-card {
-
             background: #f8f9fa;
-
             padding: 25px;
-
             border-radius: 15px;
-
             border-left: 4px solid #667eea;
-
         }
-
- 
 
         .integration-card h3 {
-
             color: #333;
-
             margin-bottom: 10px;
-
             font-size: 1.2em;
-
         }
-
- 
 
         .integration-card p {
-
             color: #666;
-
             line-height: 1.6;
-
             font-size: 0.95em;
-
         }
-
- 
 
         .potential-list {
-
             list-style: none;
-
             padding: 0;
-
         }
-
- 
 
         .potential-list li {
-
             padding: 10px 0;
-
             color: #666;
-
             border-bottom: 1px solid #e0e0e0;
-
         }
-
- 
 
         .potential-list li:last-child {
-
             border-bottom: none;
-
         }
-
- 
 
         .loading {
-
             text-align: center;
-
             padding: 50px;
-
             color: white;
-
             font-size: 1.5em;
-
         }
-
- 
 
         .spinner {
-
             border: 5px solid rgba(255, 255, 255, 0.3);
-
             border-top: 5px solid white;
-
             border-radius: 50%;
-
             width: 60px;
-
             height: 60px;
-
             animation: spin 1s linear infinite;
-
             margin: 20px auto;
-
         }
-
- 
 
         @keyframes spin {
-
             0% { transform: rotate(0deg); }
-
             100% { transform: rotate(360deg); }
-
         }
-
- 
 
         footer {
-
             text-align: center;
-
             color: rgba(255, 255, 255, 0.8);
-
             padding: 30px;
-
             margin-top: 40px;
-
         }
-
- 
 
         footer a {
-
             color: white;
-
             text-decoration: none;
-
             font-weight: 600;
-
         }
-
- 
 
         @media (max-width: 768px) {
-
             .repos-grid {
-
                 grid-template-columns: 1fr;
-
             }
-
- 
 
             h1 {
-
                 font-size: 2em;
-
             }
-
- 
 
             .repo-preview {
-
                 height: 200px;
-
             }
-
         }
-
     </style>
-
 </head>
-
 <body>
-
     <div class="container">
-
         <header>
-
             <h1>🎯 Integration Hub</h1>
-
             <p class="subtitle">mustwants Project Portfolio</p>
-
             <p class="purpose">
-
                 Explore all projects, identify integration opportunities, and discover ways to merge code for better products.
-
                 Each card shows what the project looks like, key features, and technology stack.
-
             </p>
-
+            <div style="margin-top: 20px; padding: 15px; background: rgba(72, 187, 120, 0.2); border-radius: 10px; font-size: 0.9em;">
+                <strong>💡 Tip:</strong> To add screenshots or update demo URLs for your projects, edit the PROJECT_METADATA object in this file.
+                Screenshots will be displayed instead of placeholders!
+            </div>
         </header>
 
- 
-
         <div class="nav-tabs">
-
             <button class="tab-btn active" onclick="switchTab('overview')">📊 Overview</button>
-
             <button class="tab-btn" onclick="switchTab('projects')">🚀 Projects</button>
-
             <button class="tab-btn" onclick="switchTab('integration')">🔗 Integration Ideas</button>
-
         </div>
-
- 
 
         <!-- Overview Tab -->
-
         <div id="overview-tab" class="tab-content active">
-
             <div id="stats-overview" class="stats-overview">
-
                 <!-- Stats will be populated here -->
-
             </div>
-
         </div>
-
- 
 
         <!-- Projects Tab -->
-
         <div id="projects-tab" class="tab-content active">
-
             <div id="loading" class="loading">
-
                 <div class="spinner"></div>
-
                 <p>Loading projects data...</p>
-
             </div>
-
- 
 
             <div id="repos-container" class="repos-grid">
-
                 <!-- Repository cards will be populated here -->
-
             </div>
-
         </div>
-
- 
 
         <!-- Integration Tab -->
-
         <div id="integration-tab" class="tab-content">
-
             <div class="integration-section">
-
                 <h2 class="integration-title">🔗 Integration Opportunities</h2>
 
- 
-
                 <div class="integration-grid">
-
                     <div class="integration-card">
-
                         <h3>🎨 Shared UI Components</h3>
-
                         <p>Multiple projects use similar card layouts, buttons, and form elements. Consider creating a shared component library.</p>
-
                         <ul class="potential-list">
-
                             <li><strong>Common patterns:</strong> Card components, navigation bars</li>
-
                             <li><strong>Technology:</strong> Vanilla JS, CSS Grid/Flexbox</li>
-
                             <li><strong>Benefit:</strong> Consistent design across all projects</li>
-
                         </ul>
-
                     </div>
 
- 
-
                     <div class="integration-card">
-
                         <h3>🗺️ Interactive Visualizations</h3>
-
                         <p>mwsoaringmap has advanced 3D mapping. This could be adapted for other location-based or data visualization needs.</p>
-
                         <ul class="potential-list">
-
                             <li><strong>Reusable:</strong> Mapbox integration, custom cursors</li>
-
                             <li><strong>Apply to:</strong> Any project needing maps or 3D graphics</li>
-
                             <li><strong>Tech stack:</strong> Mapbox GL JS, WebGL</li>
-
                         </ul>
-
                     </div>
 
- 
-
                     <div class="integration-card">
-
                         <h3>🧮 Calculation Engine</h3>
-
                         <p>Calculators project likely has form handling and calculation logic that could be useful across projects.</p>
-
                         <ul class="potential-list">
-
                             <li><strong>Reusable:</strong> Input validation, calculation functions</li>
-
                             <li><strong>Apply to:</strong> Any project with forms or number crunching</li>
-
                             <li><strong>Benefit:</strong> Centralized, tested calculation logic</li>
-
                         </ul>
-
                     </div>
 
- 
-
                     <div class="integration-card">
-
                         <h3>🎮 Animation & Interactions</h3>
-
                         <p>Cardflip and doggypaddle likely have interesting animation patterns that could enhance other projects.</p>
-
                         <ul class="potential-list">
-
                             <li><strong>Reusable:</strong> CSS animations, transition effects</li>
-
                             <li><strong>Apply to:</strong> Enhance user engagement everywhere</li>
-
                             <li><strong>Tech:</strong> CSS3 animations, JavaScript interactions</li>
-
                         </ul>
-
                     </div>
 
- 
-
                     <div class="integration-card">
-
                         <h3>🔐 Security Best Practices</h3>
-
                         <p>mwsoaringmap has comprehensive security headers and CSP. Apply these standards to all projects.</p>
-
                         <ul class="potential-list">
-
                             <li><strong>Standards:</strong> CSP, XSS protection, input sanitization</li>
-
                             <li><strong>Apply to:</strong> All projects for consistent security</li>
-
                             <li><strong>Priority:</strong> High - security should be universal</li>
-
                         </ul>
-
                     </div>
-
- 
 
                     <div class="integration-card">
-
                         <h3>📱 Responsive Design Patterns</h3>
-
                         <p>Share responsive design techniques and mobile-first approaches across all projects.</p>
-
                         <ul class="potential-list">
-
                             <li><strong>Patterns:</strong> Grid layouts, mobile navigation</li>
-
                             <li><strong>Benefit:</strong> Better mobile experience everywhere</li>
-
                             <li><strong>Implementation:</strong> CSS Grid, media queries</li>
-
                         </ul>
-
                     </div>
-
                 </div>
-
- 
 
                 <div style="margin-top: 40px; text-align: center;">
-
                     <h3 style="color: #333; margin-bottom: 20px;">🎯 Next Steps for Integration</h3>
-
                     <div style="background: #f8f9fa; padding: 25px; border-radius: 15px; text-align: left; max-width: 800px; margin: 0 auto;">
-
                         <ol style="color: #666; line-height: 2; padding-left: 20px;">
-
                             <li><strong>Audit each project's codebase</strong> to identify common patterns and duplicate code</li>
-
                             <li><strong>Create a shared components library</strong> with reusable UI elements</li>
-
                             <li><strong>Extract utility functions</strong> into a common utilities module</li>
-
                             <li><strong>Standardize security headers</strong> and CSP across all projects</li>
-
                             <li><strong>Build a unified design system</strong> with consistent colors, typography, and spacing</li>
-
                             <li><strong>Consider a monorepo structure</strong> to manage shared code efficiently</li>
-
                         </ol>
-
                     </div>
-
                 </div>
-
             </div>
-
         </div>
 
- 
-
         <footer>
-
             <p>Powered by GitHub API | Integration Hub for <a href="https://github.com/mustwants" target="_blank">mustwants</a></p>
-
         </footer>
-
     </div>
 
- 
-
     <script>
-
         // Configuration
-
         const GITHUB_USERNAME = 'mustwants';
 
- 
-
         // Project metadata with detailed information
-
         const PROJECT_METADATA = {
-
             'mwsoaringmap': {
-
                 icon: '🗺️',
-
                 tagline: '3D Interactive Real Estate Map',
-
                 features: [
-
                     'Interactive 3D Mapbox integration',
-
                     'Custom animated markers and cursor',
-
                     'Keyboard navigation support',
-
                     'Comprehensive security headers',
-
                     'Mobile-responsive design'
-
                 ],
-
                 techStack: ['Mapbox GL JS', 'WebGL', 'Vanilla JavaScript', 'CSS3 Animations'],
-
                 demoUrl: './soaringmap.html',
-
+                screenshotUrl: null, // Add screenshot URL here when available
+                useIframe: true, // Embed the live demo
                 primaryColor: '#667eea'
-
             },
-
             'calculators': {
-
                 icon: '🧮',
-
                 tagline: 'Financial & Mathematical Calculators',
-
                 features: [
-
                     'Multiple calculator types',
-
                     'Form validation',
-
                     'Real-time calculations',
-
                     'User-friendly interface'
-
                 ],
-
                 techStack: ['JavaScript', 'HTML5', 'CSS3'],
-
-                demoUrl: null,
-
+                demoUrl: 'https://mustwants.github.io/calculators/', // Add your demo URL
+                screenshotUrl: null, // Add screenshot URL here
+                useIframe: false,
                 primaryColor: '#38b2ac'
-
             },
-
             'doggypaddle': {
-
                 icon: '🏊',
-
                 tagline: 'Interactive Animation Project',
-
                 features: [
-
                     'Smooth animations',
-
                     'Interactive elements',
-
                     'Creative design',
-
                     'Engaging user experience'
-
                 ],
-
                 techStack: ['JavaScript', 'CSS Animations', 'HTML5 Canvas'],
-
-                demoUrl: null,
-
+                demoUrl: 'https://mustwants.github.io/doggypaddle/', // Add your demo URL
+                screenshotUrl: null, // Add screenshot URL here
+                useIframe: false,
                 primaryColor: '#ed8936'
-
             },
-
             'mustsandwants': {
-
                 icon: '📊',
-
                 tagline: 'Priority Management Tool',
-
                 features: [
-
                     'Task categorization',
-
                     'Priority sorting',
-
                     'Visual organization',
-
                     'User-friendly interface'
-
                 ],
-
                 techStack: ['JavaScript', 'Local Storage', 'CSS Grid'],
-
-                demoUrl: null,
-
+                demoUrl: 'https://mustwants.github.io/mustsandwants/', // Add your demo URL
+                screenshotUrl: null, // Add screenshot URL here
+                useIframe: false,
                 primaryColor: '#9f7aea'
-
             },
-
             'cardflip': {
-
                 icon: '🎴',
-
                 tagline: 'Interactive Card Flip Game',
-
                 features: [
-
                     '3D flip animations',
-
                     'Memory game mechanics',
-
                     'Score tracking',
-
                     'Responsive design'
-
                 ],
-
                 techStack: ['JavaScript', 'CSS3 3D Transforms', 'HTML5'],
-
-                demoUrl: null,
-
+                demoUrl: 'https://mustwants.github.io/cardflip/', // Add your demo URL
+                screenshotUrl: null, // Add screenshot URL here
+                useIframe: false,
                 primaryColor: '#f56565'
-
             },
-
             'agentpage': {
-
                 icon: '🤖',
-
                 tagline: 'AI Agent Landing Page',
-
                 features: [
-
                     'Modern landing page design',
-
                     'Agent showcase',
-
                     'Call-to-action sections',
-
                     'Responsive layout'
-
                 ],
-
                 techStack: ['HTML5', 'CSS3', 'JavaScript'],
-
-                demoUrl: null,
-
+                demoUrl: 'https://mustwants.github.io/agentpage/', // Add your demo URL
+                screenshotUrl: null, // Add screenshot URL here
+                useIframe: false,
                 primaryColor: '#4299e1'
-
             }
-
         };
-
- 
 
         const REPOS = Object.keys(PROJECT_METADATA);
 
- 
-
         // Tab switching
-
         function switchTab(tabName) {
-
             // Update buttons
-
             document.querySelectorAll('.tab-btn').forEach(btn => {
-
                 btn.classList.remove('active');
-
             });
-
             event.target.classList.add('active');
 
- 
-
             // Update content (only hide projects tab, keep overview visible)
-
             if (tabName === 'projects') {
-
                 document.getElementById('projects-tab').classList.add('active');
-
                 document.getElementById('integration-tab').classList.remove('active');
-
             } else if (tabName === 'integration') {
-
                 document.getElementById('projects-tab').classList.remove('active');
-
                 document.getElementById('integration-tab').classList.add('active');
-
             } else if (tabName === 'overview') {
-
                 document.getElementById('projects-tab').classList.add('active');
-
                 document.getElementById('integration-tab').classList.remove('active');
-
             }
-
         }
-
- 
 
         // GitHub API functions
-
         async function fetchFromGitHub(endpoint) {
-
             try {
-
                 const response = await fetch(`https://api.github.com${endpoint}`, {
-
                     headers: {
-
                         'Accept': 'application/vnd.github.v3+json'
-
                     }
-
                 });
 
- 
-
                 if (!response.ok) {
-
                     throw new Error(`GitHub API error: ${response.status}`);
-
                 }
 
- 
-
                 return await response.json();
-
             } catch (error) {
-
                 console.error('Error fetching from GitHub:', error);
-
                 return null;
-
             }
-
         }
 
- 
-
         async function getRepoData(repoName) {
-
             try {
-
                 const repo = await fetchFromGitHub(`/repos/${GITHUB_USERNAME}/${repoName}`);
-
                 if (!repo) return null;
 
- 
-
                 const commits = await fetchFromGitHub(`/repos/${GITHUB_USERNAME}/${repoName}/commits?per_page=3`);
-
                 const languages = await fetchFromGitHub(`/repos/${GITHUB_USERNAME}/${repoName}/languages`);
-
- 
 
                 const metadata = PROJECT_METADATA[repoName] || {};
 
- 
-
                 return {
-
                     name: repo.name,
-
                     description: repo.description || metadata.tagline || 'No description available',
-
                     stars: repo.stargazers_count,
-
                     forks: repo.forks_count,
-
                     openIssues: repo.open_issues_count,
-
                     language: repo.language,
-
                     url: repo.html_url,
-
                     lastUpdated: repo.updated_at,
-
                     commits: commits || [],
-
                     languages: languages ? Object.keys(languages) : [],
-
                     watchers: repo.watchers_count,
-
                     ...metadata
-
                 };
-
             } catch (error) {
-
                 console.error(`Error fetching ${repoName}:`, error);
-
                 return null;
-
             }
-
         }
-
- 
 
         function formatDate(dateString) {
-
             const date = new Date(dateString);
-
             const now = new Date();
-
             const diffTime = Math.abs(now - date);
-
             const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
- 
-
             if (diffDays === 0) return 'Today';
-
             if (diffDays === 1) return 'Yesterday';
-
             if (diffDays < 7) return `${diffDays} days ago`;
-
             if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-
             return `${Math.floor(diffDays / 30)} months ago`;
-
         }
-
- 
 
         function sanitizeHTML(str) {
-
             const div = document.createElement('div');
-
             div.textContent = str;
-
             return div.innerHTML;
-
         }
 
- 
-
         function createRepoCard(repoData) {
-
             if (!repoData) return '';
 
- 
-
-            const previewContent = repoData.demoUrl
-
-                ? `<div class="demo-badge">LIVE DEMO</div>
-
-                   <iframe src="${repoData.demoUrl}" loading="lazy"></iframe>`
-
-                : `<div class="preview-placeholder">${repoData.icon}</div>`;
-
- 
+            // Determine what to show in the preview area
+            let previewContent;
+            if (repoData.screenshotUrl) {
+                // Show screenshot if available
+                previewContent = `
+                    <img src="${repoData.screenshotUrl}" alt="${sanitizeHTML(repoData.name)} preview"
+                         onerror="this.parentElement.innerHTML='<div class=\'preview-placeholder\'>${repoData.icon}</div><div style=\\'position:absolute;bottom:10px;color:#666;font-size:0.9em;\\'>Screenshot not found</div>'">
+                `;
+            } else if (repoData.demoUrl && repoData.useIframe) {
+                // Embed live demo in iframe
+                previewContent = `
+                    <div class="demo-badge">LIVE DEMO</div>
+                    <iframe src="${repoData.demoUrl}" loading="lazy" sandbox="allow-scripts allow-same-origin"></iframe>
+                `;
+            } else if (repoData.demoUrl) {
+                // Show preview image/thumbnail with link to demo
+                previewContent = `
+                    <div class="demo-badge">VIEW DEMO</div>
+                    <a href="${repoData.demoUrl}" target="_blank" style="text-decoration: none; color: inherit; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <div class="preview-placeholder">${repoData.icon}</div>
+                        <div style="margin-top: 20px; font-size: 1.1em; font-weight: 600; color: #667eea;">
+                            Click to View Demo →
+                        </div>
+                    </a>
+                `;
+            } else {
+                // Fallback with just icon and message
+                previewContent = `
+                    <div class="preview-placeholder">${repoData.icon}</div>
+                    <div style="position: absolute; bottom: 20px; color: #999; font-size: 0.9em;">
+                        No demo available yet
+                    </div>
+                `;
+            }
 
             const techStackHTML = repoData.techStack && repoData.techStack.length > 0
-
                 ? `<div class="tech-stack">
-
                      ${repoData.techStack.map(tech => `<span class="tech-badge">${sanitizeHTML(tech)}</span>`).join('')}
-
                    </div>`
-
                 : '';
-
- 
 
             const featuresHTML = repoData.features && repoData.features.length > 0
-
                 ? `<div class="repo-features">
-
                      <div class="features-title">Key Features</div>
-
                      <ul class="features-list">
-
                        ${repoData.features.map(feature => `<li>${sanitizeHTML(feature)}</li>`).join('')}
-
                      </ul>
-
                    </div>`
-
                 : '';
 
- 
-
             return `
-
                 <div class="repo-card">
-
                     <div class="repo-preview">
-
                         ${previewContent}
-
                     </div>
 
- 
-
                     <div class="repo-content">
-
                         <div class="repo-header">
-
                             <a href="${repoData.url}" target="_blank" class="repo-name">
-
                                 <span>${repoData.icon}</span>
-
                                 ${sanitizeHTML(repoData.name)}
-
                             </a>
-
                         </div>
-
- 
 
                         <p class="repo-description">${sanitizeHTML(repoData.description)}</p>
 
- 
-
                         <div class="repo-meta">
-
                             ${repoData.language ? `<span class="meta-tag">Primary: ${sanitizeHTML(repoData.language)}</span>` : ''}
-
                             <span class="meta-tag">Updated ${formatDate(repoData.lastUpdated)}</span>
-
                         </div>
-
- 
 
                         ${techStackHTML}
-
                         ${featuresHTML}
 
- 
-
                         <div class="repo-actions">
-
-                            ${repoData.demoUrl ? `<a href="${repoData.demoUrl}" target="_blank" class="btn btn-primary">🚀 View Demo</a>` : ''}
-
+                            ${repoData.demoUrl ? `<a href="${repoData.demoUrl}" target="_blank" class="btn btn-primary">🚀 View Live Demo</a>` : ''}
                             <a href="${repoData.url}" target="_blank" class="btn btn-secondary">📂 View Code</a>
-
                         </div>
-
- 
 
                         <div class="repo-stats">
-
                             <div class="repo-stat"><span>⭐</span> ${repoData.stars}</div>
-
                             <div class="repo-stat"><span>🔱</span> ${repoData.forks}</div>
-
                             <div class="repo-stat"><span>👁️</span> ${repoData.watchers}</div>
-
                             <div class="repo-stat"><span>🐛</span> ${repoData.openIssues}</div>
-
                         </div>
-
                     </div>
-
                 </div>
-
             `;
-
         }
-
- 
 
         function createStatsOverview(reposData) {
-
             const totalStars = reposData.reduce((sum, repo) => sum + (repo?.stars || 0), 0);
-
             const totalForks = reposData.reduce((sum, repo) => sum + (repo?.forks || 0), 0);
-
             const totalIssues = reposData.reduce((sum, repo) => sum + (repo?.openIssues || 0), 0);
 
- 
-
             const allTech = new Set();
-
             reposData.forEach(repo => {
-
                 if (repo?.techStack) {
-
                     repo.techStack.forEach(tech => allTech.add(tech));
-
                 }
-
             });
 
- 
-
             return `
-
                 <div class="stat-card">
-
                     <div class="stat-number">${reposData.length}</div>
-
                     <div class="stat-label">Projects</div>
-
                 </div>
-
                 <div class="stat-card">
-
                     <div class="stat-number">${allTech.size}</div>
-
                     <div class="stat-label">Technologies</div>
-
                 </div>
-
                 <div class="stat-card">
-
                     <div class="stat-number">${totalStars}</div>
-
                     <div class="stat-label">Total Stars</div>
-
                 </div>
-
                 <div class="stat-card">
-
                     <div class="stat-number">${totalForks}</div>
-
                     <div class="stat-label">Total Forks</div>
-
                 </div>
-
                 <div class="stat-card">
-
                     <div class="stat-number">${totalIssues}</div>
-
                     <div class="stat-label">Open Issues</div>
-
                 </div>
-
             `;
-
         }
 
- 
-
         async function loadAllRepos() {
-
             const loadingEl = document.getElementById('loading');
-
             const reposContainer = document.getElementById('repos-container');
-
             const statsOverview = document.getElementById('stats-overview');
 
- 
-
             try {
-
                 const reposData = await Promise.all(
-
                     REPOS.map(repoName => getRepoData(repoName))
-
                 );
-
- 
 
                 const validRepos = reposData.filter(repo => repo !== null);
 
- 
-
                 if (validRepos.length === 0) {
-
                     throw new Error('No repositories could be loaded');
-
                 }
-
- 
 
                 loadingEl.style.display = 'none';
 
- 
-
                 statsOverview.innerHTML = createStatsOverview(validRepos);
-
                 reposContainer.innerHTML = validRepos
-
                     .map(repoData => createRepoCard(repoData))
-
                     .join('');
 
- 
-
             } catch (error) {
-
                 loadingEl.innerHTML = `
-
                     <div style="background: rgba(197, 48, 48, 0.9); color: white; padding: 30px; border-radius: 15px; max-width: 600px; margin: 0 auto;">
-
                         <h2 style="margin-bottom: 15px;">⚠️ Error Loading Projects</h2>
-
                         <p>${error.message}</p>
-
                         <p style="margin-top: 15px;">Please check your internet connection and try refreshing.</p>
-
                     </div>
-
                 `;
-
             }
-
         }
 
- 
-
         // Load on page load
-
         window.addEventListener('load', loadAllRepos);
-
     </script>
-
 </body>
-
 </html>
