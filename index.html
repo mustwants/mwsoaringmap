@@ -178,23 +178,53 @@
             border-bottom: 2px solid #f0f0f0;
             position: relative;
             overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .repo-preview:hover {
+            transform: scale(1.02);
+        }
+
+        .repo-preview a {
+            transition: all 0.3s ease;
+        }
+
+        .repo-preview a:hover {
+            transform: scale(1.05);
         }
 
         .repo-preview iframe {
             width: 100%;
             height: 100%;
             border: none;
+            pointer-events: none;
+        }
+
+        .repo-card:hover .repo-preview iframe {
+            pointer-events: auto;
         }
 
         .repo-preview img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .repo-preview img:hover {
+            transform: scale(1.05);
         }
 
         .preview-placeholder {
             font-size: 5em;
             opacity: 0.3;
+            transition: all 0.3s ease;
+        }
+
+        .repo-preview:hover .preview-placeholder {
+            opacity: 0.5;
+            transform: scale(1.1);
         }
 
         .demo-badge {
@@ -485,6 +515,10 @@
                 Explore all projects, identify integration opportunities, and discover ways to merge code for better products.
                 Each card shows what the project looks like, key features, and technology stack.
             </p>
+            <div style="margin-top: 20px; padding: 15px; background: rgba(72, 187, 120, 0.2); border-radius: 10px; font-size: 0.9em;">
+                <strong>💡 Tip:</strong> To add screenshots or update demo URLs for your projects, edit the PROJECT_METADATA object in this file.
+                Screenshots will be displayed instead of placeholders!
+            </div>
         </header>
 
         <div class="nav-tabs">
@@ -618,6 +652,8 @@
                 ],
                 techStack: ['Mapbox GL JS', 'WebGL', 'Vanilla JavaScript', 'CSS3 Animations'],
                 demoUrl: './soaringmap.html',
+                screenshotUrl: null, // Add screenshot URL here when available
+                useIframe: true, // Embed the live demo
                 primaryColor: '#667eea'
             },
             'calculators': {
@@ -630,7 +666,9 @@
                     'User-friendly interface'
                 ],
                 techStack: ['JavaScript', 'HTML5', 'CSS3'],
-                demoUrl: null,
+                demoUrl: 'https://mustwants.github.io/calculators/', // Add your demo URL
+                screenshotUrl: null, // Add screenshot URL here
+                useIframe: false,
                 primaryColor: '#38b2ac'
             },
             'doggypaddle': {
@@ -643,7 +681,9 @@
                     'Engaging user experience'
                 ],
                 techStack: ['JavaScript', 'CSS Animations', 'HTML5 Canvas'],
-                demoUrl: null,
+                demoUrl: 'https://mustwants.github.io/doggypaddle/', // Add your demo URL
+                screenshotUrl: null, // Add screenshot URL here
+                useIframe: false,
                 primaryColor: '#ed8936'
             },
             'mustsandwants': {
@@ -656,7 +696,9 @@
                     'User-friendly interface'
                 ],
                 techStack: ['JavaScript', 'Local Storage', 'CSS Grid'],
-                demoUrl: null,
+                demoUrl: 'https://mustwants.github.io/mustsandwants/', // Add your demo URL
+                screenshotUrl: null, // Add screenshot URL here
+                useIframe: false,
                 primaryColor: '#9f7aea'
             },
             'cardflip': {
@@ -669,7 +711,9 @@
                     'Responsive design'
                 ],
                 techStack: ['JavaScript', 'CSS3 3D Transforms', 'HTML5'],
-                demoUrl: null,
+                demoUrl: 'https://mustwants.github.io/cardflip/', // Add your demo URL
+                screenshotUrl: null, // Add screenshot URL here
+                useIframe: false,
                 primaryColor: '#f56565'
             },
             'agentpage': {
@@ -682,7 +726,9 @@
                     'Responsive layout'
                 ],
                 techStack: ['HTML5', 'CSS3', 'JavaScript'],
-                demoUrl: null,
+                demoUrl: 'https://mustwants.github.io/agentpage/', // Add your demo URL
+                screenshotUrl: null, // Add screenshot URL here
+                useIframe: false,
                 primaryColor: '#4299e1'
             }
         };
@@ -782,10 +828,40 @@
         function createRepoCard(repoData) {
             if (!repoData) return '';
 
-            const previewContent = repoData.demoUrl
-                ? `<div class="demo-badge">LIVE DEMO</div>
-                   <iframe src="${repoData.demoUrl}" loading="lazy"></iframe>`
-                : `<div class="preview-placeholder">${repoData.icon}</div>`;
+            // Determine what to show in the preview area
+            let previewContent;
+            if (repoData.screenshotUrl) {
+                // Show screenshot if available
+                previewContent = `
+                    <img src="${repoData.screenshotUrl}" alt="${sanitizeHTML(repoData.name)} preview"
+                         onerror="this.parentElement.innerHTML='<div class=\'preview-placeholder\'>${repoData.icon}</div><div style=\\'position:absolute;bottom:10px;color:#666;font-size:0.9em;\\'>Screenshot not found</div>'">
+                `;
+            } else if (repoData.demoUrl && repoData.useIframe) {
+                // Embed live demo in iframe
+                previewContent = `
+                    <div class="demo-badge">LIVE DEMO</div>
+                    <iframe src="${repoData.demoUrl}" loading="lazy" sandbox="allow-scripts allow-same-origin"></iframe>
+                `;
+            } else if (repoData.demoUrl) {
+                // Show preview image/thumbnail with link to demo
+                previewContent = `
+                    <div class="demo-badge">VIEW DEMO</div>
+                    <a href="${repoData.demoUrl}" target="_blank" style="text-decoration: none; color: inherit; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <div class="preview-placeholder">${repoData.icon}</div>
+                        <div style="margin-top: 20px; font-size: 1.1em; font-weight: 600; color: #667eea;">
+                            Click to View Demo →
+                        </div>
+                    </a>
+                `;
+            } else {
+                // Fallback with just icon and message
+                previewContent = `
+                    <div class="preview-placeholder">${repoData.icon}</div>
+                    <div style="position: absolute; bottom: 20px; color: #999; font-size: 0.9em;">
+                        No demo available yet
+                    </div>
+                `;
+            }
 
             const techStackHTML = repoData.techStack && repoData.techStack.length > 0
                 ? `<div class="tech-stack">
@@ -827,7 +903,7 @@
                         ${featuresHTML}
 
                         <div class="repo-actions">
-                            ${repoData.demoUrl ? `<a href="${repoData.demoUrl}" target="_blank" class="btn btn-primary">🚀 View Demo</a>` : ''}
+                            ${repoData.demoUrl ? `<a href="${repoData.demoUrl}" target="_blank" class="btn btn-primary">🚀 View Live Demo</a>` : ''}
                             <a href="${repoData.url}" target="_blank" class="btn btn-secondary">📂 View Code</a>
                         </div>
 

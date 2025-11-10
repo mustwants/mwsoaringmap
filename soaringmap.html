@@ -13,9 +13,10 @@
                    img-src 'self' data: https: blob:;
                    connect-src https://api.mapbox.com https://events.mapbox.com https://*.tiles.mapbox.com;
                    font-src 'self' data: https://api.mapbox.com;
-                   worker-src blob:;">
+                   worker-src blob:;
+                   frame-ancestors 'self';">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+    <!-- X-Frame-Options is set via HTTP header in netlify.toml -->
 
     <!-- Mapbox GL JS with SRI -->
     <!-- Note: SRI hashes should be obtained from https://docs.mapbox.com/mapbox-gl-js/guides/install/ -->
