@@ -4,10 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D Soaring Real Estate Map</title>
-    
-    <!-- Mapbox GL JS -->
-    <script src='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js'></script>
-    <link href='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css' rel='stylesheet' />
+
+    <!-- Security Headers -->
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self';
+                   script-src 'self' 'unsafe-inline' https://api.mapbox.com;
+                   style-src 'self' 'unsafe-inline' https://api.mapbox.com;
+                   img-src 'self' data: https: blob:;
+                   connect-src https://api.mapbox.com https://events.mapbox.com https://*.tiles.mapbox.com;
+                   font-src 'self' data: https://api.mapbox.com;
+                   worker-src blob:;">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+
+    <!-- Mapbox GL JS with SRI -->
+    <!-- Note: SRI hashes should be obtained from https://docs.mapbox.com/mapbox-gl-js/guides/install/ -->
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js'
+            crossorigin="anonymous"></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css'
+          rel='stylesheet'
+          crossorigin="anonymous" />
     
     <style>
         * {
@@ -271,46 +287,121 @@
             font-size: 14px;
             backdrop-filter: blur(10px);
         }
+
+        /* Accessibility: Screen reader only content */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0,0,0,0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Accessibility: Skip navigation link */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: #000;
+            color: #fff;
+            padding: 8px;
+            z-index: 100000;
+            text-decoration: none;
+        }
+
+        .skip-link:focus {
+            top: 0;
+        }
+
+        /* Accessibility: Focus indicators */
+        .marker-pin:focus {
+            outline: 3px solid #4299e1 !important;
+            outline-offset: 3px;
+        }
+
+        button:focus,
+        a:focus {
+            outline: 2px solid #4299e1;
+            outline-offset: 2px;
+        }
+
+        /* Mobile responsive cursor */
+        @media (hover: none) and (pointer: coarse) {
+            body {
+                cursor: default !important;
+            }
+            #custom-cursor {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- Skip Link for Accessibility -->
+    <a href="#map" class="skip-link">Skip to map</a>
+
+    <!-- Screen Reader Description -->
+    <div class="sr-only" role="region" aria-label="Map description">
+        This is an interactive 3D map showing real estate properties across the United States.
+        Properties are marked with pins. Use Tab to navigate between properties,
+        arrow keys to pan the map, and plus/minus keys to zoom in and out.
+        Press Enter on a property pin to view details.
+    </div>
+
     <!-- Loading Screen -->
-    <div id="loading">
+    <div id="loading" role="alert" aria-live="assertive" aria-label="Loading map">
         <div class="spinner"></div>
         <div>Loading your map...</div>
         <div style="font-size: 14px; margin-top: 10px; opacity: 0.8;">Please wait</div>
     </div>
 
     <!-- Error Screen -->
-    <div id="error">
+    <div id="error" role="alert" aria-live="assertive">
         <h2>⚠️ Map Loading Error</h2>
         <p id="error-message">Something went wrong. Please check your internet connection and try again.</p>
-        <button onclick="location.reload()">Reload Page</button>
+        <button onclick="location.reload()" aria-label="Reload page to try again">Reload Page</button>
     </div>
 
-    <div id="map"></div>
-    <div id="custom-cursor"></div>
-    <div id="info-card" class="info-card"></div>
+    <div id="map" role="application" aria-label="Interactive 3D real estate map" tabindex="0"></div>
+    <div id="custom-cursor" aria-hidden="true"></div>
+    <div id="info-card" class="info-card" role="dialog" aria-live="polite"></div>
 
-    <div class="instructions">
+    <div class="instructions" role="region" aria-label="Map controls instructions">
         <h3>🗺️ Controls</h3>
-        <p><strong>Mouse Wheel:</strong> Zoom in/out</p>
-        <p><strong>Hover on pins:</strong> View property info</p>
-        <p><strong>Move mouse:</strong> Fly around</p>
+        <p><strong>Mouse/Keyboard:</strong> +/- to zoom</p>
+        <p><strong>Arrow keys:</strong> Pan the map</p>
+        <p><strong>Tab:</strong> Navigate properties</p>
+        <p><strong>Hover/Enter on pins:</strong> View info</p>
         <p>Watch the camera angle change as you zoom!</p>
     </div>
 
-    <div class="zoom-indicator">
+    <div class="zoom-indicator" role="status" aria-live="polite" aria-atomic="true">
         <div>Zoom Level: <span id="zoom-level">4.0</span></div>
         <div>Altitude: <span id="altitude">High</span></div>
     </div>
 
     <script>
+        // Configuration
+        const CONFIG = {
+            loadTimeout: 30000, // 30 seconds
+            retryAttempts: 3,
+            retryDelay: 2000 // 2 seconds
+        };
+
         // Wait for everything to load
         window.addEventListener('load', function() {
             // Check if Mapbox loaded
             if (typeof mapboxgl === 'undefined') {
-                showError('Mapbox library failed to load. Please check your internet connection.');
+                showError('Mapbox library failed to load. Please check your internet connection and try again.');
+                return;
+            }
+
+            // Check browser compatibility
+            if (!checkBrowserSupport()) {
                 return;
             }
 
@@ -324,11 +415,50 @@
             document.getElementById('error').classList.add('show');
         }
 
+        function checkBrowserSupport() {
+            // Check for WebGL support
+            const isWebGLSupported = (function() {
+                try {
+                    const canvas = document.createElement('canvas');
+                    return !!(canvas.getContext('webgl') || canvas.getContext('experimental-webgl'));
+                } catch(e) {
+                    return false;
+                }
+            })();
+
+            if (!isWebGLSupported) {
+                showError('Your browser does not support WebGL, which is required for this 3D map. Please update your browser or try Chrome, Firefox, Safari, or Edge.');
+                return false;
+            }
+
+            // Check for required JavaScript features
+            if (typeof Promise === 'undefined' || typeof Array.prototype.forEach === 'undefined') {
+                showError('Your browser is too old to display this map. Please update to a modern browser.');
+                return false;
+            }
+
+            return true;
+        }
+
         function initializeMap() {
             try {
-                // Replace with your Mapbox access token
-                // Get free token at: https://account.mapbox.com/
-                mapboxgl.accessToken = 'pk.eyJ1IjoibXVzdHdhbnRzIiwiYSI6ImNsaTh2cjI3NDB3bHEzZ3Fob3c4aDR4MHcifQ.qDhlx0b6fclWZnm_u1pTpQ';
+                // ⚠️ IMPORTANT: Replace 'YOUR_MAPBOX_TOKEN_HERE' with your actual token
+                // Get your FREE token at: https://account.mapbox.com/
+                // SECURITY: Make sure to set URL restrictions in your Mapbox dashboard!
+                mapboxgl.accessToken = 'YOUR_MAPBOX_TOKEN_HERE';
+
+                // Validate token format
+                if (!mapboxgl.accessToken || mapboxgl.accessToken === 'YOUR_MAPBOX_TOKEN_HERE' || !mapboxgl.accessToken.startsWith('pk.')) {
+                    showError('⚠️ Invalid Mapbox token. Please add your own token from https://account.mapbox.com/ and set URL restrictions for security.');
+                    return;
+                }
+
+                // Set timeout for map loading
+                const loadTimeout = setTimeout(() => {
+                    if (!map || !map.loaded()) {
+                        showError('Map is taking too long to load. Please check your internet connection and refresh the page.');
+                    }
+                }, CONFIG.loadTimeout);
 
                 // Initialize map centered on United States
                 const map = new mapboxgl.Map({
@@ -435,11 +565,46 @@
 
                 let markers = [];
                 let activeMarker = null;
+                let currentPropertyIndex = 0;
+
+                // Detect mobile/touch devices
+                const isTouchDevice = ('ontouchstart' in window) ||
+                                     (navigator.maxTouchPoints > 0) ||
+                                     (navigator.msMaxTouchPoints > 0);
 
                 // Custom cursor tracking
                 const cursor = document.getElementById('custom-cursor');
                 const infoCard = document.getElementById('info-card');
                 let mouseX = 0, mouseY = 0;
+
+                // Disable custom cursor on touch devices
+                if (isTouchDevice) {
+                    document.body.style.cursor = 'default';
+                    cursor.style.display = 'none';
+                }
+
+                // Throttle function for performance
+                function throttle(func, limit) {
+                    let inThrottle;
+                    return function(...args) {
+                        if (!inThrottle) {
+                            func.apply(this, args);
+                            inThrottle = true;
+                            setTimeout(() => inThrottle = false, limit);
+                        }
+                    };
+                }
+
+                // Smooth camera follow (throttled for performance)
+                const updateBearing = throttle((offsetX) => {
+                    if (!isTouchDevice) {
+                        const bearing = offsetX * 5;
+                        map.easeTo({
+                            bearing: bearing,
+                            duration: 1000
+                        });
+                    }
+                }, 100);
 
                 document.addEventListener('mousemove', (e) => {
                     mouseX = e.clientX;
@@ -447,18 +612,10 @@
                     cursor.style.left = mouseX + 'px';
                     cursor.style.top = mouseY + 'px';
 
-                    // Smooth camera follow (subtle pan)
                     const centerX = window.innerWidth / 2;
-                    const centerY = window.innerHeight / 2;
                     const offsetX = (mouseX - centerX) / centerX;
-                    const offsetY = (mouseY - centerY) / centerY;
-                    
-                    // Very subtle rotation based on mouse position
-                    const bearing = offsetX * 5; // Max 5 degrees rotation
-                    map.easeTo({
-                        bearing: bearing,
-                        duration: 1000
-                    });
+
+                    updateBearing(offsetX);
                 });
 
                 // Zoom with mouse wheel and adjust pitch
@@ -487,13 +644,76 @@
 
                 function updateZoomDisplay(zoom) {
                     document.getElementById('zoom-level').textContent = zoom.toFixed(1);
-                    
+
                     let altitude = 'Very High';
                     if (zoom > 10) altitude = 'Low';
                     else if (zoom > 7) altitude = 'Medium';
                     else if (zoom > 5) altitude = 'High';
-                    
+
                     document.getElementById('altitude').textContent = altitude;
+                }
+
+                // Keyboard Navigation
+                document.addEventListener('keydown', (e) => {
+                    const zoomStep = 0.5;
+                    const panStep = 50;
+
+                    switch(e.key) {
+                        case '+':
+                        case '=':
+                            e.preventDefault();
+                            map.zoomTo(map.getZoom() + zoomStep);
+                            break;
+                        case '-':
+                        case '_':
+                            e.preventDefault();
+                            map.zoomTo(map.getZoom() - zoomStep);
+                            break;
+                        case 'ArrowUp':
+                            e.preventDefault();
+                            map.panBy([0, -panStep]);
+                            break;
+                        case 'ArrowDown':
+                            e.preventDefault();
+                            map.panBy([0, panStep]);
+                            break;
+                        case 'ArrowLeft':
+                            e.preventDefault();
+                            map.panBy([-panStep, 0]);
+                            break;
+                        case 'ArrowRight':
+                            e.preventDefault();
+                            map.panBy([panStep, 0]);
+                            break;
+                        case 'Tab':
+                            // Tab navigation handled by marker focus
+                            break;
+                        case 'Home':
+                            e.preventDefault();
+                            map.flyTo({
+                                center: [-98.5795, 39.8283],
+                                zoom: 4
+                            });
+                            break;
+                    }
+                });
+
+                // Cycle through properties function
+                function cycleThroughProperties(direction) {
+                    if (markers.length === 0) return;
+
+                    currentPropertyIndex = (currentPropertyIndex + direction + properties.length) % properties.length;
+                    const property = properties[currentPropertyIndex];
+
+                    // Fly to property
+                    map.flyTo({
+                        center: property.coordinates,
+                        zoom: 12,
+                        duration: 2000
+                    });
+
+                    // Show info card
+                    showInfoCard(property, window.innerWidth / 2, window.innerHeight / 2);
                 }
 
                 // Add markers when map loads
@@ -554,6 +774,11 @@
                         `;
                         el.appendChild(innerDot);
 
+                        // Add accessibility attributes
+                        el.setAttribute('role', 'button');
+                        el.setAttribute('aria-label', `${property.name}, ${property.price}, ${property.beds} bedrooms, ${property.baths} bathrooms`);
+                        el.setAttribute('tabindex', '0');
+
                         // Marker hover events
                         el.addEventListener('mouseenter', () => {
                             el.style.transform = 'rotate(-45deg) scale(1.3)';
@@ -568,6 +793,70 @@
                             cursor.classList.remove('hovering');
                             hideInfoCard();
                             activeMarker = null;
+                        });
+
+                        // Touch support for mobile
+                        if (isTouchDevice) {
+                            el.addEventListener('touchstart', (e) => {
+                                e.preventDefault();
+                                const touch = e.touches[0];
+                                el.style.transform = 'rotate(-45deg) scale(1.3)';
+                                el.style.zIndex = '1000';
+                                showInfoCard(property, touch.clientX, touch.clientY);
+                                activeMarker = property;
+
+                                // Fly to property on touch
+                                map.flyTo({
+                                    center: property.coordinates,
+                                    zoom: 12,
+                                    duration: 1500
+                                });
+                            });
+
+                            el.addEventListener('touchend', (e) => {
+                                // Keep info card open on mobile
+                                setTimeout(() => {
+                                    if (activeMarker === property) {
+                                        el.style.transform = 'rotate(-45deg) scale(1)';
+                                    }
+                                }, 3000);
+                            });
+                        }
+
+                        // Keyboard support (Enter/Space to activate)
+                        el.addEventListener('keydown', (e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                el.style.transform = 'rotate(-45deg) scale(1.3)';
+                                el.style.zIndex = '1000';
+
+                                // Get element position for info card
+                                const rect = el.getBoundingClientRect();
+                                showInfoCard(property, rect.left + rect.width / 2, rect.top);
+                                activeMarker = property;
+
+                                // Fly to property
+                                map.flyTo({
+                                    center: property.coordinates,
+                                    zoom: 12,
+                                    duration: 1500
+                                });
+                            } else if (e.key === 'Escape') {
+                                el.style.transform = 'rotate(-45deg) scale(1)';
+                                hideInfoCard();
+                                activeMarker = null;
+                            }
+                        });
+
+                        // Focus event for keyboard navigation
+                        el.addEventListener('focus', () => {
+                            el.style.transform = 'rotate(-45deg) scale(1.2)';
+                        });
+
+                        el.addEventListener('blur', () => {
+                            if (activeMarker !== property) {
+                                el.style.transform = 'rotate(-45deg) scale(1)';
+                            }
                         });
 
                         // Create marker
@@ -589,39 +878,86 @@
                     document.head.appendChild(style);
                 });
 
-                // Handle map errors
+                // Handle map errors - Comprehensive error handling
                 map.on('error', (e) => {
                     console.error('Map error:', e);
-                    if (e.error && e.error.message.includes('token')) {
-                        showError('Invalid Mapbox token. Please add your own token from https://account.mapbox.com/');
+                    clearTimeout(loadTimeout);
+
+                    let errorMessage = 'An error occurred while loading the map. Please try refreshing the page.';
+
+                    if (e.error && e.error.message) {
+                        const msg = e.error.message.toLowerCase();
+
+                        if (msg.includes('token') || msg.includes('unauthorized') || msg.includes('401')) {
+                            errorMessage = '⚠️ Invalid or unauthorized Mapbox token. Please check your token and URL restrictions at https://account.mapbox.com/';
+                        } else if (msg.includes('webgl')) {
+                            errorMessage = '❌ WebGL Error: Your browser or graphics card does not support 3D rendering. Please try updating your browser or graphics drivers.';
+                        } else if (msg.includes('network') || msg.includes('fetch') || msg.includes('cors')) {
+                            errorMessage = '🌐 Network Error: Unable to connect to Mapbox servers. Please check your internet connection.';
+                        } else if (msg.includes('quota') || msg.includes('limit')) {
+                            errorMessage = '📊 API Quota Exceeded: You have reached your Mapbox usage limit. Please check your account at https://account.mapbox.com/';
+                        } else if (msg.includes('style')) {
+                            errorMessage = '🎨 Map Style Error: Unable to load the map style. The style may have been deleted or you may not have access.';
+                        } else if (msg.includes('tile')) {
+                            errorMessage = '🗺️ Tile Loading Error: Some map tiles failed to load. Your internet connection may be unstable.';
+                        }
+                    }
+
+                    showError(errorMessage);
+                });
+
+                // Handle successful map load
+                map.on('load', () => {
+                    clearTimeout(loadTimeout);
+                });
+
+                // Handle data loading errors
+                map.on('dataloading', (e) => {
+                    // Track data loading
+                });
+
+                map.on('error', (e) => {
+                    if (e.sourceId) {
+                        console.error('Error loading source:', e.sourceId, e);
                     }
                 });
 
                 function showInfoCard(property, x, y) {
                     const card = document.getElementById('info-card');
-                    
+
+                    // Use safer DOM manipulation with textContent
+                    // This prevents XSS even if property data comes from external source in future
+                    const sanitize = (text) => {
+                        const div = document.createElement('div');
+                        div.textContent = text;
+                        return div.innerHTML;
+                    };
+
                     card.innerHTML = `
-                        <h3>🏡 ${property.name}</h3>
-                        <div class="price">${property.price}</div>
+                        <h3>🏡 ${sanitize(property.name)}</h3>
+                        <div class="price">${sanitize(property.price)}</div>
                         <div class="details">
-                            <div class="detail-item">${property.beds} Bedrooms</div>
-                            <div class="detail-item">${property.baths} Bathrooms</div>
-                            <div class="detail-item">${property.sqft} sq ft</div>
+                            <div class="detail-item">${sanitize(property.beds)} Bedrooms</div>
+                            <div class="detail-item">${sanitize(property.baths)} Bathrooms</div>
+                            <div class="detail-item">${sanitize(property.sqft)} sq ft</div>
                         </div>
                         <div class="agent">
-                            <div class="agent-name">👤 ${property.agent}</div>
-                            <div>📞 ${property.phone}</div>
+                            <div class="agent-name">👤 ${sanitize(property.agent)}</div>
+                            <div>📞 ${sanitize(property.phone)}</div>
                             <div class="social-links">
-                                <div class="social-link">${property.social.fb}</div>
-                                <div class="social-link">${property.social.ig}</div>
-                                <div class="social-link">${property.social.tw}</div>
+                                <div class="social-link">${sanitize(property.social.fb)}</div>
+                                <div class="social-link">${sanitize(property.social.ig)}</div>
+                                <div class="social-link">${sanitize(property.social.tw)}</div>
                             </div>
                         </div>
                     `;
-                    
+
                     card.style.left = x + 'px';
                     card.style.top = y + 'px';
                     card.classList.add('active');
+
+                    // Announce to screen readers
+                    card.setAttribute('aria-label', `Property details: ${property.name}, ${property.price}`);
                 }
 
                 function hideInfoCard() {
