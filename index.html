@@ -747,7 +747,7 @@
             <button class="fullscreen-close" onclick="closeFullscreen()">✕ Close (ESC)</button>
         </div>
         <div class="fullscreen-content">
-            <iframe id="fullscreen-iframe" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"></iframe>
+            <iframe id="fullscreen-iframe" sandbox="allow-scripts allow-forms allow-popups allow-modals"></iframe>
         </div>
     </div>
 
@@ -785,7 +785,7 @@
                 techStack: ['JavaScript', 'HTML5', 'CSS3'],
                 demoUrl: 'https://mustwants.github.io/calculators/', // Enable GitHub Pages first
                 screenshotUrl: null, // Optional: './screenshots/calculators.png'
-                useIframe: true, // Embed in hub for testing
+                useIframe: false, // Set to true after enabling GitHub Pages
                 primaryColor: '#38b2ac'
             },
             'doggypaddle': {
@@ -800,7 +800,7 @@
                 techStack: ['JavaScript', 'CSS Animations', 'HTML5 Canvas'],
                 demoUrl: 'https://mustwants.github.io/doggypaddle/', // Enable GitHub Pages first
                 screenshotUrl: null, // Optional: './screenshots/doggypaddle.png'
-                useIframe: true, // Embed in hub for testing
+                useIframe: false, // Set to true after enabling GitHub Pages
                 primaryColor: '#ed8936'
             },
             'mustsandwants': {
@@ -815,7 +815,7 @@
                 techStack: ['JavaScript', 'Local Storage', 'CSS Grid'],
                 demoUrl: 'https://mustwants.github.io/mustsandwants/', // Enable GitHub Pages first
                 screenshotUrl: null, // Optional: './screenshots/mustsandwants.png'
-                useIframe: true, // Embed in hub for testing
+                useIframe: false, // Set to true after enabling GitHub Pages
                 primaryColor: '#9f7aea'
             },
             'cardflip': {
@@ -830,7 +830,7 @@
                 techStack: ['JavaScript', 'CSS3 3D Transforms', 'HTML5'],
                 demoUrl: 'https://mustwants.github.io/cardflip/', // Enable GitHub Pages first
                 screenshotUrl: null, // Optional: './screenshots/cardflip.png'
-                useIframe: true, // Embed in hub for testing
+                useIframe: false, // Set to true after enabling GitHub Pages
                 primaryColor: '#f56565'
             },
             'agentpage': {
@@ -845,7 +845,7 @@
                 techStack: ['HTML5', 'CSS3', 'JavaScript'],
                 demoUrl: 'https://mustwants.github.io/agentpage/', // Enable GitHub Pages first
                 screenshotUrl: null, // Optional: './screenshots/agentpage.png'
-                useIframe: true, // Embed in hub for testing
+                useIframe: false, // Set to true after enabling GitHub Pages
                 primaryColor: '#4299e1'
             }
         };
@@ -964,7 +964,7 @@
                     <div class="loading-indicator">Loading demo...</div>
                     <iframe src="${repoData.demoUrl}"
                             loading="lazy"
-                            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                            sandbox="allow-scripts allow-forms allow-popups"
                             onload="this.previousElementSibling.style.display='none'"
                             onerror="this.previousElementSibling.textContent='Failed to load demo. Enable GitHub Pages first!'">
                     </iframe>
